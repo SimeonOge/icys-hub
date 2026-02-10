@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icy's Activity Hub</title>
+    <style>
+        :root {
+            --ice-blue: #e0f7fa;
+            --deep-snow: #a1c4fd;
+            --magic-purple: #b19cd9;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, var(--ice-blue), var(--deep-snow));
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background: white;
+            transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn:hover { transform: scale(1.1); background: var(--magic-purple); color: white; }
+
+        .section { display: none; padding: 20px; text-align: center; }
+        .active { display: block; animation: fadeIn 0.5s; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- MEMORY GAME STYLES --- */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .memory-card {
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+
+        .memory-card.flipped { transform: rotateY(180deg); }
+
+        .memory-card .front, .memory-card .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+        }
+
+        .memory-card .back { background-color: #fff; transform: rotateY(180deg); }
+        .memory-card .front { background-color: var(--magic-purple); color: white; font-size: 2rem; }
+
+        /* --- EXISTING STYLES (Canvas, etc.) --- */
+        #art-section { background: white; padding: 20px; border-radius: 20px; display: inline-block; }
+        #canvas-wrapper { position: relative; width: 600px; height: 400px; border: 2px solid #d1e9ff; background: white; }
+        canvas { position: absolute; top: 0; left: 0; z-index: 1; }
+        .sticker-on-canvas { position: absolute; z-index: 2; width: 50px; cursor: grab; }
+        .controls { margin: 10px; display: flex; justify-content: center; gap: 10px; align-items: center; }
+        #game-canvas { width: 100%; height: 400px; background: rgba(255,255,255,0.2); position: relative; overflow: hidden; border-radius: 20px; }
+        .snowball { position: absolute; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <button class="nav-btn" onclick="showSection('home')">🏠 Home</button>
+    <button class="nav-btn" onclick="showSection('art')">🎨 Art</button>
+    <button class="nav-btn" onclick="showSection('memory')">🧠 Memory</button>
+    <button class="nav-btn" onclick="showSection('game')">🎮 Pop!</button>
+    <button class="nav-btn" onclick="showSection('stories')">📖 Stories</button>
+</nav>
+
+<div id="home" class="section active">
+    <h1>Icy's Winter Hub ❄️</h1>
+    <div style="font-size: 8rem;">🏰</div>
+    <p>Ready to play, Icy?</p>
+</div>
+
+<div id="art" class="section">
+    <div id="art-section">
+        <div class="controls">
+            <button class="nav-btn" onclick="setColor('#a1c4fd')">🔵</button>
+            <button class="nav-btn" onclick="setColor('#ffb7b2')">🔴</button>
+            <button class="nav-btn" onclick="setColor('#b19cd9')">🟣</button>
+            <button class="nav-btn" onclick="clearCanvas()">🗑️ Clear</button>
+        </div>
+        <div id="canvas-wrapper">
+            <canvas id="paintCanvas" width="600" height="400"></canvas>
+        </div>
+    </div>
+</div>
+
+<div id="memory" class="section">
+    <h2>Find the Pairs!</h2>
+    <div class="memory-grid" id="memory-grid"></div>
+    <br>
+    <button class="nav-btn" onclick="initMemoryGame()">🔄 New Game</button>
+</div>
+
+<div id="game" class="section">
+    <div id="score">Score: 0</div>
+    <div id="game-canvas"></div>
+</div>
+
+<div id="stories" class="section">
+    <div id="story-content" style="background:white; padding:20px; border-radius:20px; font-size:1.5rem;">Click for a story!</div>
+    <br>
+    <button class="nav-btn" onclick="generateStory()">✨ Magic Story</button>
+</div>
+
+<script>
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(id === 'game') startGame(); else stopGame();
+        if(id === 'memory') initMemoryGame();
+    }
+
+    // --- MEMORY GAME ---
+    const icons = ['🐧', '🐻‍❄️', '🐋', '❄️', '🦌', '🍦', '🐧', '🐻‍❄️', '🐋', '❄️', '🦌', '🍦'];
+    let flippedCards = [];
+    let matchedCount = 0;
+
+    function initMemoryGame() {
+        const grid = document.getElementById('memory-grid');
+        grid.innerHTML = '';
+        flippedCards = [];
+        matchedCount = 0;
+        const shuffled = icons.sort(() => 0.5 - Math.random());
+        shuffled.forEach((icon, index) => {
+            const card = document.createElement('div');
+            card.className = 'memory-card';
+            card.dataset.icon = icon;
+            card.innerHTML = `<div class="front">?</div><div class="back">${icon}</div>`;
+            card.onclick = () => flipCard(card);
+            grid.appendChild(card);
+        });
+    }
+
+    function flipCard(card) {
+        if (flippedCards.length < 2 && !card.classList.contains('flipped')) {
+            card.classList.add('flipped');
+            flippedCards.push(card);
+            if (flippedCards.length === 2) {
+                setTimeout(checkMatch, 1000);
+            }
+        }
+    }
+
+    function checkMatch() {
+        const [c1, c2] = flippedCards;
+        if (c1.dataset.icon === c2.dataset.icon) {
+            matchedCount += 2;
+            if (matchedCount === icons.length) alert("You found them all, Icy!");
+        } else {
+            c1.classList.remove('flipped');
+            c2.classList.remove('flipped');
+        }
+        flippedCards = [];
+    }
+
+    // --- DRAWING LOGIC ---
+    const canvas = document.getElementById('paintCanvas');
+    const ctx = canvas.getContext('2d');
+    let painting = false;
+    let color = '#a1c4fd';
+    canvas.onmousedown = () => painting = true;
+    canvas.onmouseup = () => { painting = false; ctx.beginPath(); };
+    canvas.onmousemove = (e) => {
+        if (!painting) return;
+        const rect = canvas.getBoundingClientRect();
+        ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.strokeStyle = color;
+        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        ctx.stroke(); ctx.beginPath(); ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    };
+    function setColor(c) { color = c; }
+    function clearCanvas() { ctx.clearRect(0,0,600,400); }
+
+    // --- STORY & SNOWBALL (Simplified for Hub) ---
+    function generateStory() {
+        const stories = ["Icy and the Penguin had a snowball fight!", "Icy built a magic castle made of ice cream.", "The North Pole star twinkled just for Icy!"];
+        document.getElementById('story-content').innerText = stories[Math.floor(Math.random()*stories.length)];
+    }
+
+    let gInt; let score = 0;
+    function startGame() {
+        gInt = setInterval(() => {
+            const b = document.createElement('div'); b.className='snowball'; b.style.left=Math.random()*80+'%';
+            b.style.top='400px'; b.innerText='❄️'; b.style.fontSize='40px';
+            document.getElementById('game-canvas').appendChild(b);
+            b.animate([{top:'400px'},{top:'-50px'}], 3000).onfinish=()=>b.remove();
+            b.onclick=()=>{score++; document.getElementById('score').innerText="Score: "+score; b.remove();};
+        }, 1000);
+    }
+    function stopGame() { clearInterval(gInt); }
+</script>
+</body>
+</html>
