@@ -18,14 +18,16 @@
             background: linear-gradient(135deg, var(--ice-blue), var(--deep-snow));
             color: var(--text-color);
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
+        /* --- NAVIGATION --- */
         nav {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
             gap: 10px;
-            padding: 20px;
+            padding: 15px;
             background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(10px);
             position: sticky;
@@ -34,73 +36,72 @@
         }
 
         .nav-btn {
-            padding: 12px 20px;
-            font-size: 1.1rem;
+            padding: 12px 18px;
+            font-size: 1rem;
             border: none;
             border-radius: 50px;
             cursor: pointer;
             background: white;
             transition: 0.3s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
         .nav-btn:hover { transform: scale(1.1); background: var(--magic-purple); color: white; }
 
-        .section { display: none; padding: 20px; text-align: center; }
+        .section { display: none; padding: 20px; text-align: center; max-width: 800px; margin: 0 auto; }
         .active { display: block; animation: fadeIn 0.5s; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* --- MEMORY GAME STYLES --- */
+        /* --- ART STUDIO --- */
+        #canvas-wrapper {
+            position: relative;
+            width: 600px;
+            height: 400px;
+            background: white;
+            border: 5px solid white;
+            border-radius: 20px;
+            margin: 0 auto;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        canvas { position: absolute; top: 0; left: 0; z-index: 1; cursor: crosshair; }
+        .sticker-on-canvas { position: absolute; z-index: 2; width: 60px; cursor: grab; }
+
+        /* --- MEMORY GAME --- */
         .memory-grid {
             display: grid;
-            grid-template-columns: repeat(4, 100px);
-            gap: 15px;
+            grid-template-columns: repeat(4, 80px);
+            gap: 10px;
             justify-content: center;
-            margin-top: 20px;
+            margin: 20px auto;
         }
 
         .memory-card {
-            width: 100px;
-            height: 100px;
-            background-color: white;
-            border-radius: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 3rem;
-            cursor: pointer;
-            user-select: none;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.5s;
+            width: 80px; height: 80px;
+            background: white; border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2rem; cursor: pointer;
+            position: relative; transform-style: preserve-3d; transition: transform 0.5s;
         }
 
         .memory-card.flipped { transform: rotateY(180deg); }
-
         .memory-card .front, .memory-card .back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 15px;
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
         }
+        .memory-card .front { background: var(--magic-purple); color: white; }
+        .memory-card .back { background: white; transform: rotateY(180deg); }
 
-        .memory-card .back { background-color: #fff; transform: rotateY(180deg); }
-        .memory-card .front { background-color: var(--magic-purple); color: white; font-size: 2rem; }
+        /* --- STORY --- */
+        .story-box { background: white; padding: 30px; border-radius: 30px; text-align: left; }
+        .story-text { font-family: 'Georgia', serif; font-size: 1.2rem; line-height: 1.6; color: #444; }
 
-        /* --- EXISTING STYLES (Canvas, etc.) --- */
-        #art-section { background: white; padding: 20px; border-radius: 20px; display: inline-block; }
-        #canvas-wrapper { position: relative; width: 600px; height: 400px; border: 2px solid #d1e9ff; background: white; }
-        canvas { position: absolute; top: 0; left: 0; z-index: 1; }
-        .sticker-on-canvas { position: absolute; z-index: 2; width: 50px; cursor: grab; }
-        .controls { margin: 10px; display: flex; justify-content: center; gap: 10px; align-items: center; }
+        /* --- POP GAME --- */
         #game-canvas { width: 100%; height: 400px; background: rgba(255,255,255,0.2); position: relative; overflow: hidden; border-radius: 20px; }
-        .snowball { position: absolute; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .snowball { position: absolute; cursor: pointer; user-select: none; }
     </style>
 </head>
 <body>
@@ -114,128 +115,152 @@
 </nav>
 
 <div id="home" class="section active">
-    <h1>Icy's Winter Hub ❄️</h1>
-    <div style="font-size: 8rem;">🏰</div>
-    <p>Ready to play, Icy?</p>
+    <h1 style="font-size: 3rem; color: white; text-shadow: 2px 2px 5px rgba(0,0,0,0.1);">Hi, Icy! ❄️</h1>
+    <div style="font-size: 8rem; margin: 20px;">🏰</div>
+    <p style="font-size: 1.2rem;">Pick a game and let's have fun!</p>
 </div>
 
 <div id="art" class="section">
-    <div id="art-section">
-        <div class="controls">
-            <button class="nav-btn" onclick="setColor('#a1c4fd')">🔵</button>
-            <button class="nav-btn" onclick="setColor('#ffb7b2')">🔴</button>
-            <button class="nav-btn" onclick="setColor('#b19cd9')">🟣</button>
-            <button class="nav-btn" onclick="clearCanvas()">🗑️ Clear</button>
-        </div>
-        <div id="canvas-wrapper">
-            <canvas id="paintCanvas" width="600" height="400"></canvas>
-        </div>
+    <div class="controls" style="margin-bottom: 10px;">
+        <button class="nav-btn" onclick="setArtMode('draw', '#a1c4fd')">🔵 Blue</button>
+        <button class="nav-btn" onclick="setArtMode('draw', '#ffb7b2')">🔴 Pink</button>
+        <button class="nav-btn" onclick="setArtMode('sticker', '🐧')">🐧 Sticker</button>
+        <button class="nav-btn" onclick="clearCanvas()">🗑️ Clear</button>
+    </div>
+    <div id="canvas-wrapper">
+        <canvas id="paintCanvas" width="600" height="400"></canvas>
     </div>
 </div>
 
 <div id="memory" class="section">
-    <h2>Find the Pairs!</h2>
+    <h2>Match the Friends!</h2>
     <div class="memory-grid" id="memory-grid"></div>
-    <br>
-    <button class="nav-btn" onclick="initMemoryGame()">🔄 New Game</button>
+    <button class="nav-btn" onclick="initMemory()">New Game</button>
 </div>
 
 <div id="game" class="section">
-    <div id="score">Score: 0</div>
+    <h2 id="score">Score: 0</h2>
     <div id="game-canvas"></div>
 </div>
 
 <div id="stories" class="section">
-    <div id="story-content" style="background:white; padding:20px; border-radius:20px; font-size:1.5rem;">Click for a story!</div>
-    <br>
-    <button class="nav-btn" onclick="generateStory()">✨ Magic Story</button>
+    <div class="story-box">
+        <h2 id="stitle">✨ Magic Tale</h2>
+        <p id="scontent" class="story-text">Click the button for a story!</p>
+        <button class="nav-btn" onclick="genStory()" style="background:var(--magic-purple); color:white;">New Story</button>
+        <button class="nav-btn" onclick="speakStory()">🔊 Read Aloud</button>
+    </div>
 </div>
 
 <script>
     function showSection(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        if(id === 'game') startGame(); else stopGame();
-        if(id === 'memory') initMemoryGame();
+        id === 'game' ? startGame() : stopGame();
+        if(id === 'memory') initMemory();
+        window.speechSynthesis.cancel();
     }
 
-    // --- MEMORY GAME ---
-    const icons = ['🐧', '🐻‍❄️', '🐋', '❄️', '🦌', '🍦', '🐧', '🐻‍❄️', '🐋', '❄️', '🦌', '🍦'];
-    let flippedCards = [];
-    let matchedCount = 0;
-
-    function initMemoryGame() {
-        const grid = document.getElementById('memory-grid');
-        grid.innerHTML = '';
-        flippedCards = [];
-        matchedCount = 0;
-        const shuffled = icons.sort(() => 0.5 - Math.random());
-        shuffled.forEach((icon, index) => {
-            const card = document.createElement('div');
-            card.className = 'memory-card';
-            card.dataset.icon = icon;
-            card.innerHTML = `<div class="front">?</div><div class="back">${icon}</div>`;
-            card.onclick = () => flipCard(card);
-            grid.appendChild(card);
-        });
-    }
-
-    function flipCard(card) {
-        if (flippedCards.length < 2 && !card.classList.contains('flipped')) {
-            card.classList.add('flipped');
-            flippedCards.push(card);
-            if (flippedCards.length === 2) {
-                setTimeout(checkMatch, 1000);
-            }
-        }
-    }
-
-    function checkMatch() {
-        const [c1, c2] = flippedCards;
-        if (c1.dataset.icon === c2.dataset.icon) {
-            matchedCount += 2;
-            if (matchedCount === icons.length) alert("You found them all, Icy!");
-        } else {
-            c1.classList.remove('flipped');
-            c2.classList.remove('flipped');
-        }
-        flippedCards = [];
-    }
-
-    // --- DRAWING LOGIC ---
+    // --- ART STUDIO ---
     const canvas = document.getElementById('paintCanvas');
     const ctx = canvas.getContext('2d');
     let painting = false;
-    let color = '#a1c4fd';
-    canvas.onmousedown = () => painting = true;
-    canvas.onmouseup = () => { painting = false; ctx.beginPath(); };
-    canvas.onmousemove = (e) => {
-        if (!painting) return;
+    let mode = 'draw';
+    let activeColor = '#a1c4fd';
+    let activeSticker = '🐧';
+
+    function setArtMode(m, val) { mode = m; m === 'draw' ? activeColor = val : activeSticker = val; }
+    
+    canvas.onmousedown = (e) => {
         const rect = canvas.getBoundingClientRect();
-        ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.strokeStyle = color;
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        if(mode === 'draw') { painting = true; draw(e); }
+        else { placeSticker(x, y); }
+    };
+
+    canvas.onmousemove = draw;
+    window.onmouseup = () => { painting = false; ctx.beginPath(); };
+
+    function draw(e) {
+        if(!painting || mode !== 'draw') return;
+        const rect = canvas.getBoundingClientRect();
+        ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.strokeStyle = activeColor;
         ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
         ctx.stroke(); ctx.beginPath(); ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-    };
-    function setColor(c) { color = c; }
-    function clearCanvas() { ctx.clearRect(0,0,600,400); }
-
-    // --- STORY & SNOWBALL (Simplified for Hub) ---
-    function generateStory() {
-        const stories = ["Icy and the Penguin had a snowball fight!", "Icy built a magic castle made of ice cream.", "The North Pole star twinkled just for Icy!"];
-        document.getElementById('story-content').innerText = stories[Math.floor(Math.random()*stories.length)];
     }
 
-    let gInt; let score = 0;
+    function placeSticker(x, y) {
+        const s = document.createElement('div');
+        s.className = 'sticker-on-canvas';
+        s.innerText = activeSticker;
+        s.style.fontSize = '40px';
+        s.style.left = (x - 20) + 'px';
+        s.style.top = (y - 20) + 'px';
+        document.getElementById('canvas-wrapper').appendChild(s);
+    }
+
+    function clearCanvas() {
+        ctx.clearRect(0,0,600,400);
+        document.querySelectorAll('.sticker-on-canvas').forEach(s => s.remove());
+    }
+
+    // --- MEMORY ---
+    const items = ['🐧','🐧','🐻‍❄️','🐻‍❄️','❄️','❄️','🍦','🍦','🐋','🐋','🦌','🦌'];
+    let flipped = [];
+    function initMemory() {
+        const grid = document.getElementById('memory-grid');
+        grid.innerHTML = ''; flipped = [];
+        items.sort(() => Math.random() - 0.5).forEach(icon => {
+            const card = document.createElement('div');
+            card.className = 'memory-card';
+            card.innerHTML = `<div class="front">?</div><div class="back">${icon}</div>`;
+            card.onclick = () => {
+                if(flipped.length < 2 && !card.classList.contains('flipped')) {
+                    card.classList.add('flipped');
+                    flipped.push(card);
+                    if(flipped.length === 2) setTimeout(checkMatch, 700);
+                }
+            };
+            grid.appendChild(card);
+        });
+    }
+    function checkMatch() {
+        if(flipped[0].innerText !== flipped[1].innerText) {
+            flipped.forEach(c => c.classList.remove('flipped'));
+        }
+        flipped = [];
+    }
+
+    // --- STORY ---
+    const stories = [
+        "Icy found a magic snowflake. It took her to a castle made of candy. They danced all day!",
+        "A polar bear named Barnaby invited Icy for tea. They drank hot cocoa with giant marshmallows.",
+        "Icy built a rocket ship out of ice. She flew to the moon and found sparkly star-dust."
+    ];
+    function genStory() { 
+        document.getElementById('scontent').innerText = stories[Math.floor(Math.random()*stories.length)]; 
+    }
+    function speakStory() {
+        const u = new SpeechSynthesisUtterance(document.getElementById('scontent').innerText);
+        u.rate = 0.9; u.pitch = 1.2;
+        window.speechSynthesis.speak(u);
+    }
+
+    // --- POP GAME ---
+    let gInt, score = 0;
     function startGame() {
+        if(gInt) return;
         gInt = setInterval(() => {
-            const b = document.createElement('div'); b.className='snowball'; b.style.left=Math.random()*80+'%';
-            b.style.top='400px'; b.innerText='❄️'; b.style.fontSize='40px';
+            const b = document.createElement('div');
+            b.className = 'snowball'; b.innerText = '❄️'; b.style.fontSize = '40px';
+            b.style.left = Math.random() * 90 + '%'; b.style.top = '400px';
             document.getElementById('game-canvas').appendChild(b);
-            b.animate([{top:'400px'},{top:'-50px'}], 3000).onfinish=()=>b.remove();
-            b.onclick=()=>{score++; document.getElementById('score').innerText="Score: "+score; b.remove();};
+            b.animate([{top:'400px'},{top:'-50px'}], 3000).onfinish = () => b.remove();
+            b.onclick = () => { score++; document.getElementById('score').innerText = "Score: " + score; b.remove(); };
         }, 1000);
     }
-    function stopGame() { clearInterval(gInt); }
+    function stopGame() { clearInterval(gInt); gInt = null; }
 </script>
 </body>
 </html>
